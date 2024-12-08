@@ -72,44 +72,40 @@ def main():
 
                 st.session_state.generated = True
 
-        # Display Results
-        if st.session_state.generated:
-            st.success("Top 5 Use Cases Generated!")
-            for idx, use_case in enumerate(st.session_state.use_case_results[:5], start=1):
-                st.subheader(f"{idx}. {use_case['Use Case']}")
-                st.write(f"**Description**: {use_case['Description']}")
-                st.write(f"**Benefits**: {' '.join(use_case['Benefits'])}")
-                st.markdown("---")
+                # Display Results
+                if st.session_state.generated:
+                    st.success("Top 5 Use Cases Generated!")
+                    for idx, use_case in enumerate(st.session_state.use_case_results[:5], start=1):
+                        st.subheader(f"{idx}. {use_case['Use Case']}")
+                        st.write(f"**Description**: {use_case['Description']}")
+                        st.write(f"**Benefits**: {' '.join(use_case['Benefits'])}")
+                        st.markdown("---")
 
-            # Download buttons
-            market_research_report_path = "Market_Research_Report.xlsx"
-            use_case_report_path = "Use_Case_Feasibility_Report.docx"
+                    with open(market_research_report_path, "rb") as excel_file:
+                        st.download_button(
+                            label="Download Market Research Report (Excel)",
+                            data=excel_file,
+                            file_name=market_research_report_path,
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
 
-            with open(market_research_report_path, "rb") as excel_file:
-                st.download_button(
-                    label="Download Market Research Report (Excel)",
-                    data=excel_file,
-                    file_name=market_research_report_path,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+                    with open(use_case_report_path, "rb") as doc_file:
+                        st.download_button(
+                            label="Download Use Case Feasibility Report (DOC)",
+                            data=doc_file,
+                            file_name=use_case_report_path,
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        )
 
-            with open(use_case_report_path, "rb") as doc_file:
-                st.download_button(
-                    label="Download Use Case Feasibility Report (DOC)",
-                    data=doc_file,
-                    file_name=use_case_report_path,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+                    st.info("For detailed use cases or resource links, refer to the above reports.")
 
-            st.info("For detailed use cases or resource links, refer to the above reports.")
-
-            # Reset Button
-            if st.button("Generate New Use Cases"):
-                st.session_state.generated = False
-                st.session_state.company = ""
-                st.session_state.industry = ""
-                st.session_state.use_case_results = []
-                st.experimental_rerun()
+                    # Reset Button
+                    if st.button("Generate New Use Cases"):
+                        st.session_state.generated = False
+                        st.session_state.company = ""
+                        st.session_state.industry = ""
+                        st.session_state.use_case_results = []
+                        st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
