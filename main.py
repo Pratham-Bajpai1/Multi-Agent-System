@@ -45,9 +45,12 @@ def main():
             st.error("Both fields are required!")
         else:
             with st.spinner("Generating use cases, please wait..."):
+                progress_bar = st.progress(0)
+
                 st.session_state.company = company
                 st.session_state.industry = industry
 
+                progress_bar.progress(20)
                 # Step 1: Research Industry
                 research_query = (f"Conduct market research for the company '{company}' in the industry '{industry}'."
                                   f"Provide concise, insightful key findings about the company's strategic focus, recent innovations, and market positioning.)"
@@ -57,55 +60,72 @@ def main():
                                   f"2. Competitor strategies and market trends."
                                   f"3. Challenges and opportunities within the industry.")
 
+                progress_bar.progress(40)
+
                 research_results = research_agent.search(research_query)
 
                 # Step 2: Generate Use Cases
-                st.session_state.use_case_results = use_case_agent.generate(industry, company)
+                use_case_results = use_case_agent.generate(industry, company)
+                st.session_state.use_case_results = use_case_results  # Store results in session state
+
+                progress_bar.progress(60)
 
                 # Step 3: Collect Datasets
                 datasets = dataset_agent.collect(industry)
 
+                progress_bar.progress(80)
+
                 # Step 4: Generate Report
-                market_research_report_path = "Market_Research_Report.xlsx"
-                use_case_report_path =  "Use_Case_Feasibility_Report.docx"
-                generate_reports(research_results, st.session_state.use_case_results, datasets, company, industry)
+                generate_reports(research_results, use_case_results, datasets, company, industry)
 
                 st.session_state.generated = True
 
+                progress_bar.progress(100)
+
                 # Display Results
-                if st.session_state.generated:
-                    st.success("Top 5 Use Cases Generated!")
-                    for idx, use_case in enumerate(st.session_state.use_case_results[:5], start=1):
-                        st.subheader(f"{idx}. {use_case['Use Case']}")
-                        st.write(f"**Description**: {use_case['Description']}")
-                        st.write(f"**Benefits**: {' '.join(use_case['Benefits'])}")
-                        st.markdown("---")
+    if st.session_state.generated:
+        st.success("Top 5 Use Cases Generated!")
+        # Ensure use_case_results exist before displaying
+        if st.session_state.use_case_results:
+            for idx, use_case in enumerate(st.session_state.use_case_results[:5], start=1):
+                st.subheader(f"{idx}. {use_case['Use Case']}")
+                st.write(f"**Description**: {use_case['Description']}")
+                st.write(f"**Benefits**: {' '.join(use_case['Benefits'])}")
+                st.markdown("---")
+        else:
+            st.warning("No use cases were generated. Please try again.")
 
-                    with open(market_research_report_path, "rb") as excel_file:
-                        st.download_button(
-                            label="Download Market Research Report (Excel)",
-                            data=excel_file,
-                            file_name=market_research_report_path,
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
+        # Display Download Buttons
+        market_research_report_path = "Market_Research_Report.xlsx"
+        use_case_report_path = "Use_Case_Feasibility_Report.docx"
 
-                    with open(use_case_report_path, "rb") as doc_file:
-                        st.download_button(
-                            label="Download Use Case Feasibility Report (DOC)",
-                            data=doc_file,
-                            file_name=use_case_report_path,
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        )
+        with open(market_research_report_path, "rb") as excel_file:
+            st.download_button(
+            label="Download Market Research Report (Excel)",
+            data=excel_file,
+            file_name=market_research_report_path,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key = "download_excel"  # Ensure unique key
+            )
 
-                    st.info("For detailed use cases or resource links, refer to the above reports.")
+        with open(use_case_report_path, "rb") as doc_file:
+            st.download_button(
+            label="Download Use Case Feasibility Report (DOC)",
+            data=doc_file,
+            file_name=use_case_report_path,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            key="download_doc"
+            )
 
-                    # Reset Button
-                    if st.button("Generate New Use Cases"):
-                        st.session_state.generated = False
-                        st.session_state.company = ""
-                        st.session_state.industry = ""
-                        st.session_state.use_case_results = []
-                        st.experimental_rerun()
+        st.info("For detailed use cases or resource links, refer to the above reports.")
+
+        # Reset Button
+        if st.button("Generate New Use Cases"):
+            st.session_state.generated = False
+            st.session_state.company = ""
+            st.session_state.industry = ""
+            st.session_state.use_case_results = []
+
 
 if __name__ == "__main__":
     main()
